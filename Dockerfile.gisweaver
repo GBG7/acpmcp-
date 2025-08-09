@@ -1,0 +1,32 @@
+# syntax=docker/dockerfile:1
+
+FROM python:3.12-slim
+
+# Set working directory
+WORKDIR /app
+
+# Install system deps
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install uvicorn + poetry/pip tools if needed (optional)
+RUN pip install --upgrade pip uv
+
+# Copy requirements and install
+COPY requirements.txt .
+RUN pip install -r requirements.txt
+
+# Copy all source code
+COPY . .
+
+# Copy .env and ensure it's present in container
+ENV PYTHONUNBUFFERED=1
+ENV PORT=8001
+
+# Expose port
+EXPOSE 8001
+
+# Default entrypoint
+CMD ["uv", "run", "gisweaver.py"]

@@ -1,0 +1,61 @@
+version: "3.8"
+
+services:
+  lore_collector:
+    build:
+      context: .
+      dockerfile: Dockerfile.lorecollector
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    restart: always
+
+  gis_weaver:
+    build:
+      context: .
+      dockerfile: Dockerfile.gisweaver
+    ports:
+      - "8001:8001"
+    env_file:
+      - .env
+    volumes:
+      - ./data:/app/data
+    restart: always
+
+  map_render:
+    build:
+      context: .
+      dockerfile: Dockerfile.maprender
+    ports:
+      - "8002:8002"
+    env_file:
+      - .env
+    volumes:
+      - ./MCPin10/data:/app/MCPin10/data
+      - ./MCPin10/final_map.png:/app/MCPin10/final_map.png
+    restart: always
+
+  test_backend:
+    build:
+      context: ./chatbot-ui/testbackend
+      dockerfile: Dockerfile
+    ports:
+      - "8090:8090"
+    env_file:
+      - .env
+    depends_on:
+      - lore_collector
+      - gis_weaver
+      - map_render
+    restart: always
+
+  frontend:
+    build:
+      context: ./chatbot-ui
+      dockerfile: Dockerfile
+    ports:
+      - "8501:8501"
+    depends_on:
+      - test_backend
+    restart: always

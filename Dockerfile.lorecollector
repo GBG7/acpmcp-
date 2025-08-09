@@ -1,0 +1,30 @@
+# Use Python 3.12 slim image
+FROM python:3.12-slim
+
+# Set working directory
+WORKDIR /app
+
+# Install system dependencies (if needed, e.g. for Pillow or uvicorn)
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    libjpeg-dev \
+    zlib1g-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Python dependencies
+COPY requirements.txt ./
+RUN pip install --upgrade pip && pip install --no-cache-dir -r requirements.txt
+
+# Install uv if not in requirements.txt
+RUN pip install uv
+
+# Copy project files into the container
+COPY . .
+
+# Expose port used by lorecollector
+EXPOSE 8000
+
+# Load environment variables from mounted .env at runtime
+
+# Start the ACP agent
+CMD ["uv", "run", "lorecollector.py"]
