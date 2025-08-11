@@ -3,6 +3,15 @@
 GIS Weaver (Agent 2) – Maps structured lore to geographic constructs.
 Uses Gemini 1.5 Pro. Returns GIS-ready JSON for downstream mapping.
 """
+import os
+os.environ["CREWAI_TELEMETRY_OPT_OUT"] = "1"
+os.environ["CREWAI_TELEMETRY_DISABLED"] = "1"
+os.environ["OTEL_SDK_DISABLED"] = "true"
+os.environ["OTEL_TRACES_EXPORTER"] = "none"
+os.environ["OTEL_METRICS_EXPORTER"] = "none"
+os.environ["OTEL_LOGS_EXPORTER"] = "none"
+
+# from crewai import Crew, Task, Agent, LLM
 import json
 import traceback
 import re
