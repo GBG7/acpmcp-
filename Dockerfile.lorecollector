@@ -23,6 +23,9 @@ COPY . .
 
 # Expose port used by lorecollector
 EXPOSE 8000
+ENV UV_HTTP_TIMEOUT=120
+ENV UV_HTTP_MAX_RETRIES=5
+
 
 # Load environment variables from mounted .env at runtime
 

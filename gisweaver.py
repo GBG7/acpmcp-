@@ -1,69 +1,77 @@
 #!/usr/bin/env python
 """
 GIS Weaver (Agent 2) – Maps structured lore to geographic constructs.
-Uses Gemini 1.5 Pro. Returns GIS-ready JSON for downstream mapping.
+Uses Groq (Qwen3-32B) via CrewAI LLM. Returns GIS-ready JSON for downstream mapping.
 """
+
 import os
+# kill any telemetry
 os.environ["CREWAI_TELEMETRY_OPT_OUT"] = "1"
 os.environ["CREWAI_TELEMETRY_DISABLED"] = "1"
 os.environ["OTEL_SDK_DISABLED"] = "true"
 os.environ["OTEL_TRACES_EXPORTER"] = "none"
 os.environ["OTEL_METRICS_EXPORTER"] = "none"
 os.environ["OTEL_LOGS_EXPORTER"] = "none"
+os.environ["CREWAI_LOG_LEVEL"] = "DEBUG"
 
-# from crewai import Crew, Task, Agent, LLM
 import json
 import traceback
 import re
+import logging
+from collections.abc import AsyncGenerator
+from pathlib import Path
+
 from crewai import Crew, Task, Agent, LLM
 from crewai_tools import RagTool
 
-from collections.abc import AsyncGenerator
 from acp_sdk.models import Message, MessagePart
 from acp_sdk.server import Context, RunYield, RunYieldResume, Server
 
-import os
-import logging
 from dotenv import load_dotenv
 load_dotenv()
 
-
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
-# ── Gemini API key ─────────────────────
-api_gem = os.getenv("api_gem")
-if not api_gem:
-    raise EnvironmentError("Missing api_gem")
+GROQ_API2 = os.getenv("GROQ_API2")
+if not GROQ_API2:
+    raise EnvironmentError("Missing GROQ_API2 in environment (.env)")
 
-# ── LLM Setup: Gemini 1.5 Pro ───────────
+# --- LLM on Groq (Qwen3-32B) ---
 llm = LLM(
-    model="gemini/gemini-1.5-flash",
-    provider="google",
-    api_key=api_gem,
+    model="qwen/qwen3-32b",
+    provider="groq",
+    api_key=GROQ_API2,
     max_tokens=8192,
 )
 
-# ── RAG Tool Configuration ─────────────
+# --- RAG Tool configured to Groq as well (no Google deps) ---
 config = {
     "llm": {
-        "provider": "google",
+        "provider": "groq",
         "config": {
-            "model": "gemini-1.5-pro",
-            "api_key": api_gem,
+            "model": "qwen/qwen3-32b",
+            "api_key": GROQ_API2,
         },
     },
     "embedding_model": {
         "provider": "ollama",
-        "config": {
-            "model": "all-minilm:latest"
-        }
-    }
+        "config": {"model": "all-minilm:latest"},
+    },
 }
 
-rag_tool = RagTool(config=config)
-rag_tool.add("./data/topomapsymbols.pdf", data_type="pdf_file")
+rag_tool = None
+try:
+    rag_tool = RagTool(config=config)
+    pdf_path = Path("./data/topomapsymbols.pdf")
+    if pdf_path.exists():
+        rag_tool.add(str(pdf_path), data_type="pdf_file")
+    else:
+        logger.info("RAG: ./data/topomapsymbols.pdf not found; continuing without it.")
+except Exception as e:
+    logger.warning("RAG tool init failed; continuing without RAG. %s", e)
 
-# ── Cartographer Agent Setup ──────────────
+# --- Agent ---
 gis_agent = Agent(
     role="Fantasy GIS Cartographer",
     goal="Convert lore into terrain, faction regions, and conflict zones for mapping",
@@ -71,13 +79,14 @@ gis_agent = Agent(
     llm=llm,
     verbose=True,
     allow_delegation=False,
-)
+    )
 
+# FIXED: missing comma before "notes"
 JSON_SCHEMA = """{
-  "terrain_features": [ "name (type)" ],
-  "faction_regions": [ "faction: region" ],
-  "conflict_zones": [ "location: conflict" ],
-  "background": "Pick from: snowy, forest, desert, beach, urban, ship, halo-reach-map"
+  "terrain_features": ["name (type)"],
+  "faction_regions": ["faction: region"],
+  "conflict_zones": ["location: conflict"],
+  "background": "Pick from: snowy, forest, desert, beach, urban, ship, halo-reach-map",
   "notes": "1–2 sentence summary of how terrain, factions, and conflict interrelate"
 }"""
 
@@ -89,6 +98,12 @@ In addition to terrain, faction zones, and conflicts, also choose a suitable bac
 Choose from the following backgrounds: snowy, forest, desert, beach, urban, ship, halo-reach-map.
 Pick the background that best matches the biome or dominant setting described in the lore.
 
+STRICT OUTPUT RULES:
+- Respond with ONLY a JSON object matching the schema (no prose, no code fences).
+- Do not include comments.
+- Ensure valid JSON (double quotes, commas, etc).
+- Use simple strings, not nested objects.
+
 Input:
 {lore}
 
@@ -97,26 +112,39 @@ Respond EXACTLY in this JSON:
 {schema}
 """
 
-# ── ACP Server Setup ───────────────────
 server = Server()
 
+def _extract_json_block(text: str) -> tuple[dict | None, str | None]:
+    """Try to parse first JSON object in text. Returns (parsed, raw_json_fragment)."""
+    t = text.strip()
+    if t.startswith("{") and t.endswith("}"):
+        try:
+            return json.loads(t), t
+        except Exception:
+            pass
+    m = re.search(r"\{(?:[^{}]|(?R))*\}", text, flags=re.DOTALL)
+    if m:
+        frag = m.group(0)
+        try:
+            return json.loads(frag), frag
+        except Exception:
+            return None, frag
+    return None, None
 
 @server.agent(name="gis_weaver")
 async def gis_weaver(
         input: list[Message],
         context: Context,
 ) -> AsyncGenerator[RunYield, RunYieldResume]:
-    """Transforms lore input into GIS-style cartographic JSON using Gemini 1.5 Pro."""
-
+    """Transforms lore input into GIS-style cartographic JSON using Groq Qwen3-32B."""
     lore = input[0].parts[0].content.strip()
     prompt = PROMPT_TMPL.format(lore=lore, schema=JSON_SCHEMA)
 
     task = Task(
         description=prompt,
-        expected_output="Valid JSON with terrain_features, faction_regions, conflict_zones, background_img and notes",
+        expected_output="JSON with keys: terrain_features, faction_regions, conflict_zones, background, notes",
         agent=gis_agent,
     )
-
     crew = Crew(agents=[gis_agent], tasks=[task], verbose=True)
 
     try:
@@ -125,24 +153,38 @@ async def gis_weaver(
         error = {
             "error": "LLM or Crew execution failed",
             "exception": str(e),
+            "type": type(e).__name__,
             "traceback": traceback.format_exc(),
         }
         yield Message(parts=[MessagePart(content=json.dumps(error, indent=2))])
         return
 
-    # Extract first JSON object from output
-    result_str = str(result)
-    match = re.search(r"\{[\s\S]*\}", result_str)
-    if match:
-        try:
-            parsed = json.loads(match.group(0))
-        except Exception as e:
-            parsed = {"error": f"Invalid JSON: {e}", "raw": match.group(0)}
-    else:
-        parsed = {"error": "No valid JSON found", "raw": result_str}
+    # get raw model output (CrewAI object can vary)
+    raw_out = None
+    for attr in ("raw", "text", "final_output", "output", "agent_output"):
+        if hasattr(result, attr) and getattr(result, attr):
+            raw_out = str(getattr(result, attr))
+            break
+    if raw_out is None:
+        raw_out = str(result)
 
-    yield Message(parts=[MessagePart(content=json.dumps(parsed, indent=2))])
+    parsed, frag = _extract_json_block(raw_out)
+    if parsed is not None:
+        # validate keys
+        required = {"terrain_features", "faction_regions", "conflict_zones", "background", "notes"}
+        missing = sorted(list(required - set(parsed.keys())))
+        if missing:
+            parsed = {"error": f"Missing required keys: {missing}", "raw": parsed}
+        yield Message(parts=[MessagePart(content=json.dumps(parsed, indent=2))])
+        return
 
+    diagnostics = {
+        "error": "Invalid or no JSON found in model output",
+        "regex_fragment": frag,
+        "full_output_tail": raw_out[-2000:],
+        "hint": "Ensure schema commas/quotes are correct and reply with JSON only.",
+    }
+    yield Message(parts=[MessagePart(content=json.dumps(diagnostics, indent=2))])
 
 if __name__ == "__main__":
     server.run(host="0.0.0.0", port=8001)

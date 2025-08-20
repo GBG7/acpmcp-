@@ -18,10 +18,17 @@ from groq import Groq
 from PIL import Image, ImageDraw, ImageColor
 from colorama import Fore
 from dotenv import load_dotenv
+import os
+os.environ["CREWAI_TELEMETRY_OPT_OUT"] = "1"
+os.environ["CREWAI_TELEMETRY_DISABLED"] = "1"
+os.environ["OTEL_SDK_DISABLED"] = "true"
+os.environ["OTEL_TRACES_EXPORTER"] = "none"
+os.environ["OTEL_METRICS_EXPORTER"] = "none"
+os.environ["OTEL_LOGS_EXPORTER"] = "none"
+
 load_dotenv()
 
 
-# --- Constants ---
 API_KEY = os.getenv("GROQ_API")
 MODEL_ID = "qwen/qwen3-32b"
 BACKGROUND_IMAGE = "data/halo-reach-map.png"
@@ -33,7 +40,7 @@ if not API_KEY:
 client = Groq(api_key=API_KEY)
 server = Server()
 
-# --- Prompt Template ---
+# Prompt Template 
 reach_coords = """
 "locations": [
   {"name": "New Alexandria", "x": 370, "y": 290},
@@ -235,7 +242,7 @@ def apply_opacity(hex_color: str, opacity: float) -> tuple:
     except Exception:
         return None
 
-# --- ACP Tool Handler ---
+# ACP Tool Handler 
 @server.agent(name="render_map")
 async def render_map(
         input: list[Message],
@@ -400,7 +407,6 @@ async def render_map(
                     y = dy + parse_svg_float(elem.attrib.get("y", "0"))
                     text_content = elem.text or ""
                     font_color = fill or (0, 0, 0, 255)
-                    # Pillow ≥8.2 supports stroke params
                     canvas.text((x, y), text_content,
                                 fill=font_color,
                                 stroke_width=stroke_w if stroke else 0,
@@ -427,6 +433,6 @@ async def render_map(
         yield Message(parts=[MessagePart(content=f"Error: exception during rendering: {e}")])
 
 
-# --- Launch Server ---
+
 if __name__ == "__main__":
     server.run(host="0.0.0.0", port=8002)

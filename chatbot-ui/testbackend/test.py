@@ -220,9 +220,16 @@ async def process_query(
 
     payloads: list[dict] = []  # what'll be eventually returnd
 
-    async with Client(base_url="http://localhost:8000") as lore, \
-            Client(base_url="http://localhost:8001") as gis, \
-            Client(base_url="http://localhost:8002") as cartographer:
+    # async with Client(base_url="http://localhost:8000") as lore, \
+    #         Client(base_url="http://localhost:8001") as gis, \
+    #         Client(base_url="http://localhost:8002") as cartographer:
+    lore_base = os.getenv("LORE_BASE", "http://localhost:8000")
+    gis_base = os.getenv("GIS_BASE", "http://localhost:8001")
+    map_base = os.getenv("MAP_BASE", "http://localhost:8002")
+
+    async with Client(base_url=lore_base) as lore, \
+            Client(base_url=gis_base) as gis, \
+            Client(base_url=map_base) as cartographer:
 
         q_norm = usr_question.strip().lower()
 

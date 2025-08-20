@@ -12,11 +12,12 @@ export function MessageActions({ message }: MessageActionsProps) {
   const [liked, setLiked] = useState(false)
   const [disliked, setDisliked] = useState(false)
 
-  const handleCopy = () => {
-    navigator.clipboard.writeText(message.content)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
-  }
+  const handleCopy = async () => {
+  await navigator.clipboard.writeText(message.content ?? "");
+  setCopied(true);
+  setTimeout(() => setCopied(false), 2000);
+};
+
 
   const handleLike = () => {
     console.log("like")

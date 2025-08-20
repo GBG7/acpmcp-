@@ -15,6 +15,12 @@ from groq import Groq
 import re
 from dotenv import load_dotenv
 load_dotenv()
+os.environ["CREWAI_TELEMETRY_OPT_OUT"] = "1"
+os.environ["CREWAI_TELEMETRY_DISABLED"] = "1"
+os.environ["OTEL_SDK_DISABLED"] = "true"
+os.environ["OTEL_TRACES_EXPORTER"] = "none"
+os.environ["OTEL_METRICS_EXPORTER"] = "none"
+os.environ["OTEL_LOGS_EXPORTER"] = "none"
 
 
 GROQ_API = os.getenv("GROQ_API")

@@ -38,12 +38,16 @@ services:
 
   test_backend:
     build:
-      context: ./chatbot-ui/testbackend
-      dockerfile: Dockerfile
+      context: .  # <- use project root so we can COPY requirements.txt
+      dockerfile: ./chatbot-ui/testbackend/Dockerfile
     ports:
       - "8090:8090"
     env_file:
       - .env
+    environment:
+      LORE_BASE: http://lore_collector:8000
+      GIS_BASE: http://gis_weaver:8001
+      MAP_BASE: http://map_render:8002
     depends_on:
       - lore_collector
       - gis_weaver

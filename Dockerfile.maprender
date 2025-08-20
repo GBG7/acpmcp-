@@ -21,6 +21,9 @@ COPY . /app/
 # Set ENV so it loads your .env correctly at runtime
 ENV PYTHONUNBUFFERED=1
 ENV PORT=8002
+ENV UV_HTTP_TIMEOUT=120
+ENV UV_HTTP_MAX_RETRIES=5
+
 
 # Expose port
 EXPOSE 8002
