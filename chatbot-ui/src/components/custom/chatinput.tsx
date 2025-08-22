@@ -86,7 +86,7 @@ export const ChatInput = ({
 
   const triggerLock = (index: number) => {
     setLockedButtonIndex(index);
-    setSecondsLeft(62);
+    setSecondsLeft(70);
   };
 
   useEffect(() => {

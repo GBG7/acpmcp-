@@ -8,7 +8,7 @@ services:
     ports:
       - "8000:8000"
     env_file:
-      - .env
+      - .env         
     restart: always
 
   gis_weaver:
@@ -32,8 +32,10 @@ services:
     env_file:
       - .env
     volumes:
-      - ./MCPin10/data:/app/MCPin10/data
-      - ./MCPin10/final_map.png:/app/MCPin10/final_map.png
+      - ./MCPin10:/app/MCPin10
+    #volumes:
+    #  - ./MCPin10/data:/app/MCPin10/data
+    #  - ./MCPin10/final_map.png:/app/MCPin10/final_map.png
     restart: always
 
   test_backend:
@@ -48,6 +50,8 @@ services:
       LORE_BASE: http://lore_collector:8000
       GIS_BASE: http://gis_weaver:8001
       MAP_BASE: http://map_render:8002
+    volumes:
+      - ./MCPin10:/app/MCPin10         
     depends_on:
       - lore_collector
       - gis_weaver

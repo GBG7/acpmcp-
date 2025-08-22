@@ -255,7 +255,7 @@ async def process_query(
             # Image or fallback text
             if Path(map_out.strip()).suffix.lower() == ".png":
                 uri = image_to_data_uri(map_out.strip())
-                print(Fore.GREEN + uri + Fore.RESET)
+                #print(Fore.GREEN + uri + Fore.RESET)
                 if uri:
                     payloads.append({"type": "image", "data": uri, "alt": "Fantasy map"})
                     return payloads

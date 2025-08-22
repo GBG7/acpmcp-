@@ -37,20 +37,17 @@ GROQ_API2 = os.getenv("GROQ_API2")
 if not GROQ_API2:
     raise EnvironmentError("Missing GROQ_API2 in environment (.env)")
 
-# --- LLM on Groq (Qwen3-32B) ---
 llm = LLM(
-    model="qwen/qwen3-32b",
-    provider="groq",
+    model="groq/qwen/qwen3-32b",  # provider + model
     api_key=GROQ_API2,
     max_tokens=8192,
 )
 
-# --- RAG Tool configured to Groq as well (no Google deps) ---
 config = {
     "llm": {
-        "provider": "groq",
+        "provider": "groq",        # optional with this style, but fine to include
         "config": {
-            "model": "qwen/qwen3-32b",
+            "model": "groq/qwen/qwen3-32b",
             "api_key": GROQ_API2,
         },
     },
@@ -59,6 +56,7 @@ config = {
         "config": {"model": "all-minilm:latest"},
     },
 }
+
 
 rag_tool = None
 try:
