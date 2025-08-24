@@ -1,0 +1,20 @@
+services:
+  frontend:
+    image: gbg7/acpmcp-frontend:v1
+    build: null
+
+  test_backend:
+    image: gbg7/acpmcp-test-backend:v1
+    build: null
+
+  lore_collector:
+    image: gbg7/acpmcp-lore:v1
+    build: null
+
+  gis_weaver:
+    image: gbg7/acpmcp-gis:v1
+    build: null
+
+  map_render:
+    image: gbg7/acpmcp-map:v1
+    build: null
