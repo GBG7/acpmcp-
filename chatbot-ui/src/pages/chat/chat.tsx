@@ -10,7 +10,14 @@ import { Header } from "@/components/custom/header";
 
 import { message } from "@/interfaces/interfaces";
 
-const socket = new WebSocket("ws://15.222.2.245:8090"); // hardcoded, fix later to make it dynamic <3
+// choose ws:// or wss:// depending on http/https
+const proto = window.location.protocol === "https:" ? "wss" : "ws";
+
+// use the current hostname from the browser
+const host = window.location.hostname;
+
+// your backend WS server is always on port 8090
+const socket = new WebSocket(`${proto}://${host}:8090`);
 
 export function Chat() {
   const [messagesContainerRef, messagesEndRef] =
