@@ -1,20 +1,21 @@
 services:
   frontend:
-    image: gbg7/acpmcp-frontend:v1
+    image: gbg7/miklagard:frontend-v2
     build: null
 
   test_backend:
-    image: gbg7/acpmcp-test-backend:v1
+    image: gbg7/miklagard:test-backend-v2
     build: null
 
   lore_collector:
-    image: gbg7/acpmcp-lore:v1
+    image: gbg7/miklagard:lore-v2
     build: null
 
   gis_weaver:
-    image: gbg7/acpmcp-gis:v1
+    image: gbg7/miklagard:gis-v2
     build: null
 
   map_render:
-    image: gbg7/acpmcp-map:v1
+    image: gbg7/miklagard:map-v2
     build: null
+
