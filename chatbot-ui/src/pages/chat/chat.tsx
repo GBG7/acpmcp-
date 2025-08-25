@@ -10,7 +10,7 @@ import { Header } from "@/components/custom/header";
 
 import { message } from "@/interfaces/interfaces";
 
-const socket = new WebSocket("ws://35.183.110.149:8090"); // hardcoded, fix later to make it dynamic <3
+const socket = new WebSocket("ws://15.222.2.245:8090"); // hardcoded, fix later to make it dynamic <3
 
 export function Chat() {
   const [messagesContainerRef, messagesEndRef] =
