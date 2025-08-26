@@ -95,7 +95,7 @@ graph TD
    docker compose up -d
    ```
 3. **Access the app**  
-   Visit your AWS EC2 instance at your custom domain.
+   Visit localhost:8501
 
 > **Note:** Images are hosted at [Docker Hub - gbg7](https://hub.docker.com/u/gbg7)
 
