@@ -121,7 +121,7 @@ graph TD
 
 ## Contributing
 
-nothing rlly to contribute to. pm me if u wanna add sum
+- nothing rlly to contribute to. pm me if u wanna add sum
 ---
 
 ## License
@@ -147,5 +147,6 @@ MIT
 ## Contact
 
 Questions or feedback? Open an [issue](https://github.com/GBG7/acpmcp-/issues) or email <your-email-here>.
+
 
 
