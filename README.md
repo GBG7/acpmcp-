@@ -121,8 +121,7 @@ graph TD
 
 ## Contributing
 
-PRs welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
-
+nothing rlly to contribute to. pm me if u wanna add sum
 ---
 
 ## License
@@ -141,14 +140,11 @@ MIT
 ---
 
 ## TODO / Roadmap
-
-- [ ] Add automated tests
-- [ ] Improve frontend styling
 - [ ] Add more map templates
-- [ ] Integrate additional LLMs
 
 ---
 
 ## Contact
 
 Questions or feedback? Open an [issue](https://github.com/GBG7/acpmcp-/issues) or email <your-email-here>.
+
