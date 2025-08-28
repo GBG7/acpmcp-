@@ -1,5 +1,5 @@
 # LilSolarAI: The Silent Cartographer
-
+note: I copiloted this readme.md, giving it specific instructions
 > **Multi-agentic AI system that crafts fantasy maps from your prompts.**
 
 [![Docker Pulls](https://img.shields.io/docker/pulls/gbg7/lilsolarai)](https://hub.docker.com/u/gbg7)
@@ -147,4 +147,5 @@ MIT
 ## Contact
 
 Questions or feedback? Open an [issue](https://github.com/GBG7/acpmcp-/issues) or email <your-email-here>.
+
 
